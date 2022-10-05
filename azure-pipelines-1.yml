@@ -1,0 +1,27 @@
+# Variable 'VersionMajor' was defined in the Variables tab
+# Variable 'VersionMinor' was defined in the Variables tab
+name: $(VersionMajor).$(VersionMinor).$(date:yyyy).$(date:MMdd)$(rev:r)
+jobs:
+- job: Job_1
+  displayName: Compose-Archive
+  pool:
+    vmImage: windows-latest
+  steps:
+  - checkout: self
+    fetchDepth: 1
+  - task: ArchiveFiles@2
+    displayName: Archive HelloWorld.ps1
+    enabled: False
+    inputs:
+      rootFolderOrFile: HelloWorld.ps1
+      archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildNumber).zip
+  - task: CopyFiles@2
+    displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
+    inputs:
+      Contents: HelloWorld.ps1
+      TargetFolder: $(Build.ArtifactStagingDirectory)
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: $(Build.BuildNumber)'
+    inputs:
+      ArtifactName: $(Build.BuildNumber)
+...
