@@ -1,3 +1,6 @@
+# 'Allow scripts to access the OAuth token' was selected in pipeline.  Add the following YAML to any steps requiring access:
+#       env:
+#           MY_ACCESS_TOKEN: $(System.AccessToken)
 # Variable 'VersionMajor' was defined in the Variables tab
 # Variable 'VersionMinor' was defined in the Variables tab
 name: $(VersionMajor).$(VersionMinor).$(date:yyyy).$(date:MMdd)$(rev:r)
@@ -9,9 +12,9 @@ jobs:
   steps:
   - checkout: self
     fetchDepth: 1
+    persistCredentials: True
   - task: ArchiveFiles@2
     displayName: Archive HelloWorld.ps1
-    enabled: False
     inputs:
       rootFolderOrFile: HelloWorld.ps1
       archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildNumber).zip
@@ -20,8 +23,23 @@ jobs:
     inputs:
       Contents: HelloWorld.ps1
       TargetFolder: $(Build.ArtifactStagingDirectory)
+  - task: PowerShell@2
+    displayName: PowerShell Script
+    inputs:
+      targetType: inline
+      script: "git clone https://dvarga2:hfwhaqtljvcs3r2tnpsd5s7fqpq23m273kq2rg2acfulgj4vtp3a@dev.azure.com/abessehu/AB.AB.TST/_git/dev\ncd dev\n#git fetch --tags \n#git config --global user.email \"mercvrivs2@gmail.com\"\n#git commit -m \"initial commit\"\ngit remote rm origin\ngit remote add origin https://mercvrivs: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@github.com/mercvrivs/HelloWorld.git\n#git pull origin main --allow-unrelated-histories\ngit push --mirror origin\n\n$env:GH_TOKEN +=\"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\"\n$env:GH_HOST +=\"github.com\"\n$env:GH_REPO +=\"mercvrivs/HelloWorld\"\n#Get-Item -Path Env:\\\n$env:BUILD_BUILDNUMBER\n$env:GH_HOST\n$env:GH_REPO\n\ngh release create $env:BUILD_BUILDNUMBER D:\\a\\1\\a\\$env:BUILD_BUILDNUMBER.zip\n\nls\ncd D:\\a\\1\\\nls\ncd D:\\a\\1\\a\nls\ncd D:\\a\\1\\s\nls"
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact: $(Build.BuildNumber)'
     inputs:
       ArtifactName: $(Build.BuildNumber)
+  - task: GitHubRelease@1
+    displayName: GitHub release (create)
+    enabled: False
+    inputs:
+      gitHubConnection: 156bed66-4482-4e53-a341-46bf8d89f7a8
+      target: $(Build.ArtifactStagingDirectory)/$(Build.BuildNumber).zip
+      tagSource: userSpecifiedTag
+      tag: $(Build.BuildNumber)
+      title: TstFromDevOps
+      assets: $(Build.ArtifactStagingDirectory)/*.zip
 ...
